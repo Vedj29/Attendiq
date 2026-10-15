@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>AttendIQ – Student Attendance Risk Management (Demo)</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+
+:root{--bg:#f3f6f4;--card:#fff;--ink:#14231f;--mute:#5d6f69;--line:#dfe7e3;--brand:#0f766e;--brand2:#0b5a54;--soft:#e3f2ef;--hi:#c2410c;--hib:#ffedd5;--md:#a16207;--mdb:#fef3c7;--lo:#15803d;--lob:#dcfce7;--sh:0 1px 2px rgba(15,40,35,.06),0 6px 18px rgba(15,40,35,.05)}
+
+*{box-sizing:border-box;margin:0}
+
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+
+svg.ic{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+button{font:inherit;cursor:pointer}
+
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.side{position:fixed;inset:0 auto 0 0;width:240px;background:#0d2b27;color:#cfe3de;padding:20px 14px;display:flex;flex-direction:column;z-index:30;transition:transform .25s}
+
+.logo{display:flex;gap:10px;align-items:center;color:#fff;font-weight:700;font-size:20px;padding:4px 10px 22px}
+
+.logo span{background:#2dd4bf;color:#0d2b27;border-radius:10px;padding:6px;display:grid}
+
+.nav button{display:flex;gap:12px;align-items:center;width:100%;background:none;border:0;color:inherit;padding:11px 12px;border-radius:10px;margin-bottom:4px;text-align:left;transition:background .15s}
+
+.nav button:hover{background:rgba(255,255,255,.07)}
+
+.nav button.on{background:#2dd4bf;color:#0d2b27;font-weight:600}
+
+.side .foot{margin-top:auto;font-size:12px;opacity:.8;padding:10px}
+
+.side .foot button{margin-top:8px;background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:8px;padding:7px 10px;width:100%}
+
+.main{margin-left:240px}
+
+.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:12px 24px}
+
+.top .burger{display:none;background:none;border:0;color:var(--ink)}
+
+.sbox{flex:1;max-width:420px;position:relative}
+
+.sbox svg{position:absolute;left:11px;top:9px;color:var(--mute)}
+
+input,select{font:inherit;color:inherit}
+
+.sbox input{width:100%;padding:8px 12px 8px 36px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+
+.right{margin-left:auto;display:flex;align-items:center;gap:14px;position:relative}
+
+.ib{background:none;border:1px solid var(--line);border-radius:10px;padding:8px;position:relative;color:var(--ink)}
+
+.ib b{position:absolute;top:-6px;right:-6px;background:var(--hi);color:#fff;border-radius:99px;font-size:11px;padding:0 6px}
+
+.av{width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:600}
+
+.dd{position:absolute;top:48px;right:0;width:300px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);padding:10px;display:none}
+
+.dd.show{display:block}
+
+.dd div{padding:8px;border-radius:8px;font-size:13px}.dd div:hover{background:var(--bg)}
+
+.wrap{width:100%;max-width:1280px;margin:0 auto;padding:24px;min-width:0}
+
+.banner{background:var(--mdb);color:#713f12;border:1px solid #fde68a;border-radius:10px;padding:9px 14px;margin-bottom:20px;font-size:13px;display:flex;gap:10px;align-items:center}
+
+h1{font-size:24px;letter-spacing:-.01em}.sub{color:var(--mute);margin-bottom:20px}
+
+.view{display:none}.view.on{display:block;animation:in .3s ease}
+
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:20px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--sh)}
+
+.stat{display:flex;justify-content:space-between;align-items:flex-start}
+
+.stat small{color:var(--mute)}.stat h2{font-size:30px;margin-top:2px;letter-spacing:-.02em}
+
+.stat .ico{padding:10px;border-radius:12px;display:grid}
+
+.row{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;margin-bottom:20px;width:100%;min-width:0;max-width:100%;margin-left:auto;margin-right:auto}
+
+.card h3{font-size:15px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+
+.cv{position:relative;height:420px;width:100%;max-width:100%;margin:0 auto}
+.cv canvas{display:block;width:100% !important;max-width:100%}
+#dash .row>.card{width:100%;min-width:0;box-sizing:border-box}
+@media(max-width:900px){.cv{height:340px}}
+
+.btn{background:var(--brand);color:#fff;border:0;border-radius:9px;padding:8px 14px;display:inline-flex;gap:8px;align-items:center;transition:background .15s,transform .1s}
+
+.btn:hover{background:var(--brand2)}.btn:active{transform:scale(.97)}
+
+.btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.sec:hover{background:var(--bg)}
+
+.btn.sm{padding:4px 9px;font-size:12px}
+
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+
+.bar input,.bar select,.form input,.form select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff}
+
+.bar input{flex:1;min-width:180px}
+
+.tw{overflow-x:auto;padding:0}
+
+table{width:100%;border-collapse:collapse;min-width:760px}
+
+th{text-align:left;font-size:12px;color:var(--mute);font-weight:600;padding:12px 16px;background:#f8faf9;border-bottom:1px solid var(--line)}
+
+td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+
+tbody tr{transition:background .12s}tbody tr:hover{background:#f8faf9}
+
+.nm{display:flex;gap:10px;align-items:center;font-weight:600;cursor:pointer}
+
+.nm i{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--brand);display:grid;place-items:center;font-style:normal;font-size:12px}
+
+.pbar{display:flex;gap:8px;align-items:center;min-width:130px}
+
+.pbar u{flex:1;height:7px;background:var(--line);border-radius:9px;overflow:hidden;text-decoration:none}
+
+.pbar u s{display:block;height:100%;border-radius:9px;transition:width .5s}
+
+.bd{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;display:inline-block}
+
+.High{background:var(--hib);color:var(--hi)}.Medium{background:var(--mdb);color:var(--md)}.Low{background:var(--lob);color:var(--lo)}
+
+.f-High{background:var(--hi)}.f-Medium{background:#d9a406}.f-Low{background:#22a455}
+
+.acts{display:flex;gap:6px}
+
+.form{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;width:100%;min-width:0;max-width:100%;margin:0 auto}.form>.card{width:100%;min-width:0;box-sizing:border-box}.form .res{max-width:100%;margin:0 auto;padding:28px 32px}.form #fl{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:20px!important}.form #go{display:block;min-width:190px;margin:22px auto 0!important}.form .gauge{max-width:900px;margin:28px auto 10px}.form .fx{max-width:900px;margin:18px auto 0}
+
+.fld label{display:flex;justify-content:space-between;font-weight:600;margin-bottom:6px}
+
+.fld input[type=range]{width:100%;accent-color:var(--brand)}
+
+.res{text-align:center}
+
+.gauge{height:14px;background:linear-gradient(90deg,#22a455,#d9a406 45%,#c2410c);border-radius:9px;position:relative;margin:22px 0 8px}
+
+.gauge i{position:absolute;top:-6px;width:6px;height:26px;background:var(--ink);border-radius:3px;transition:left .6s;left:0}
+
+.fx{text-align:left;margin-top:14px;font-size:13px}.fx div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+
+.ar{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+
+.modal{position:fixed;inset:0;background:rgba(10,30,26,.5);display:none;place-items:center;z-index:50;padding:16px}
+
+.modal.show{display:grid}
+
+.mb{background:#fff;border-radius:16px;width:100%;max-width:440px;padding:22px;animation:in .25s}
+
+.mb .k{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+
+.mb .k div{background:var(--bg);border-radius:10px;padding:10px}.mb .k small{color:var(--mute);display:block}
+
+.toast{position:fixed;bottom:22px;right:22px;background:#0d2b27;color:#fff;padding:11px 16px;border-radius:10px;opacity:0;transform:translateY(12px);transition:.25s;z-index:80;pointer-events:none}
+
+.toast.show{opacity:1;transform:none}
+
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:25}
+
+@media(max-width:900px){.form #fl{grid-template-columns:minmax(0,1fr)!important}.form .res{padding:22px 16px}.row,.form{grid-template-columns:1fr}.side{transform:translateX(-100%)}.side.open{transform:none}.side.open~.ov{display:block}.main{margin-left:0}.top .burger{display:block}.top{padding:12px 14px}.wrap{padding:16px}}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+
+</head>
+
+<body>
+
+<aside class="side" id="side">
+
+  <div class="logo"><span><i data-i="cap"></i></span>AttendIQ</div>
+
+  <nav class="nav">
+
+    <button data-v="dash" class="on"><i data-i="grid"></i>Dashboard</button>
+
+    <button data-v="stu"><i data-i="users"></i>Students</button>
+
+    <button data-v="pred"><i data-i="pulse"></i>Risk predictor</button>
+
+  </nav>
+
+  <div class="foot">Demo build · all data is synthetic and fictional.<button id="reset">Reset demo data</button></div>
+
+</aside>
+
+<div class="ov" id="ov"></div>
+
+<div class="main">
+
+  <header class="top">
+
+    <button class="burger" id="burger" aria-label="Menu"><i data-i="menu"></i></button>
+
+    <div class="sbox"><i data-i="search"></i><input id="gs" placeholder="Search students…" aria-label="Search students"></div>
+
+    <div class="right">
+
+      <button class="ib" id="bell" aria-label="Alerts"><i data-i="bell"></i><b id="bc">0</b></button>
+
+      <div class="dd" id="dd"></div>
+
+      <span class="av">DR</span>
+
+    </div>
+
+  </header>
+
+  <div class="wrap">
+
+    <div class="banner"><i data-i="warn"></i><span><b>Demonstration data:</b> every student record is fictional; Random Forest and Decision Tree predictions are for illustration only.</span></div>
+
+
+
+    <section class="view on" id="dash">
+
+      <h1>Attendance overview</h1><p class="sub" id="dsub"></p>
+
+      <div class="bar"><select id="dy" aria-label="Filter dashboard by year"><option value="">All years</option><option value="SE">Second Year (SE)</option><option value="TE">Third Year (TE)</option><option value="BE">Fourth Year (BE)</option></select></div>
+
+      <div class="grid4" id="cards"></div>
+
+      <div class="row">
+
+        <div class="card"><h3>Attendance by student<button class="btn sm sec" id="sim"><i data-i="play"></i>Simulate one class day</button></h3><div class="cv"><canvas id="c1"></canvas></div></div>
+
+        <div class="card"><h3>Risk distribution</h3><div class="cv"><canvas id="c2"></canvas></div></div>
+
+      </div>
+
+      <div class="card"><h3>Students needing attention<button class="btn sm sec" data-go="stu" data-risk="High">View all high-risk</button></h3><div id="top"></div></div>
+
+    </section>
+
+
+
+    <section class="view" id="stu">
+
+      <h1>Students</h1><p class="sub">Second, Third and Final Year · AI &amp; DS · attendance = classes attended ÷ classes conducted × 100 (demonstration data).</p>
+
+      <div class="bar">
+
+        <input id="q" placeholder="Search by name or ID" aria-label="Search">
+
+        <select id="fr"><option value="">All risk levels</option><option value="High">High Risk</option><option value="Medium">Medium Risk</option><option value="Low">Low Risk</option></select>
+
+        <select id="fy" aria-label="Filter by year"><option value="">All years</option><option value="SE">Second Year (SE)</option><option value="TE">Third Year (TE)</option><option value="BE">Fourth Year (BE)</option></select>
+
+
+
+        <select id="so"><option value="name">Sort: Name</option><option value="asc">Attendance: low → high</option><option value="desc">Attendance: high → low</option></select>
+
+        <button class="btn sec" id="clr"><i data-i="x"></i>Clear</button>
+
+        <button class="btn" id="exp"><i data-i="dl"></i>Export CSV</button>
+
+      </div>
+
+      <div class="card tw"><table><thead><tr><th>Student</th><th>Department</th><th>Attendance</th><th>Classes attended</th><th>Risk</th><th>Record a class</th></tr></thead><tbody id="tb"></tbody></table><p id="empty" class="sub" style="padding:20px;display:none;margin:0">No students match these filters. Clear filters to see all records.</p></div>
+
+    </section>
+
+
+
+    <section class="view" id="pred">
+
+      <h1>Risk prediction (demo)</h1><p class="sub">A Random Forest (100 trees) and a Decision Tree (depth 4) trained on the 180 fictional AI &amp; DS student records. Both models use five indicators: attendance, consecutive absences, assignment completion, previous term attendance and internal marks. The Random Forest gives the headline prediction; the Decision Tree shows an easy-to-read rule path.</p>
+
+      <div class="form">
+
+        <div class="card"><h3>Student indicators</h3>
+
+          <div id="fl" style="display:grid;gap:16px"></div>
+
+          <button class="btn" id="go" style="margin-top:18px"><i data-i="pulse"></i>Predict risk</button>
+
+        </div>
+
+        <div class="card res"><h3>Predicted outcome <span class="bd Medium">Demo only</span></h3>
+
+          <div id="rb"><span class="bd Low" id="rl" style="font-size:16px;padding:6px 18px">—</span>
+
+          <h2 id="rp" style="font-size:40px;margin:12px 0 0">—</h2><small style="color:var(--mute)">risk score (0–100)</small>
+
+          <div class="gauge"><i id="gi"></i></div>
+
+          <div class="fx" id="fx"><p class="sub">Adjust the sliders and select “Predict risk”.</p></div></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+
+
+<div class="modal" id="md"><div class="mb" id="mb"></div></div>
+
+<div class="toast" id="ts"></div>
+
+
+
+<script>
+
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+
+const IC={cap:'<path d="M22 10 12 5 2 10l10 5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>',grid:'<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',pulse:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',warn:'<path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3zM12 9v4M12 17h.01"/>',ok:'<path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/>',dl:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',x:'<path d="M18 6 6 18M6 6l12 12"/>',trend:'<path d="m22 7-8.5 8.5-5-5L2 17M16 7h6v6"/>',play:'<path d="m6 3 14 9-14 9z"/>',plus:'<path d="M20 6 9 17l-5-5"/>',minus:'<path d="M18 6 6 18M6 6l12 12"/>'};
+
+function icons(r=document){r.querySelectorAll('i[data-i]').forEach(e=>{e.outerHTML='<svg class="ic" viewBox="0 0 24 24">'+IC[e.dataset.i]+'</svg>'})}
+
+
+
+/* ---------- synthetic data ---------- */
+
+const CSV=`Student_ID,Student_Name,Department,Year,Classes_Conducted,Classes_Attended,Attendance_Percentage,Previous_Term_Attendance_Percentage,Consecutive_Absences,Assignment_Completion_Percentage,Internal_Marks_Percentage,Risk_Status
+SE001,Aarav Sharma,AI & DS,Second Year (SE),36,16,44.44,50.79,2,42.94,68.54,High Risk
+SE002,Ananya Pawar,AI & DS,Second Year (SE),38,24,63.16,64.5,0,64.96,79.02,Medium Risk
+SE003,Vihaan Agarwal,AI & DS,Second Year (SE),42,32,76.19,76.4,1,31.53,58.45,Low Risk
+SE004,Isha Deshmukh,AI & DS,Second Year (SE),46,38,82.61,92.44,2,95.53,72.89,Low Risk
+SE005,Aditya Bhosale,AI & DS,Second Year (SE),36,26,72.22,70.42,6,84.59,64.67,Medium Risk
+SE006,Saanvi Salunkhe,AI & DS,Second Year (SE),42,36,85.71,71.4,3,50.41,61.94,Low Risk
+SE007,Arjun Joshi,AI & DS,Second Year (SE),36,26,72.22,63.96,3,83.41,48.93,Medium Risk
+SE008,Aditi Chavan,AI & DS,Second Year (SE),46,26,56.52,63.81,1,100.0,63.65,High Risk
+SE009,Reyansh Nair,AI & DS,Second Year (SE),44,36,81.82,78.45,0,86.74,49.78,Low Risk
+SE010,Myra More,AI & DS,Second Year (SE),36,26,72.22,70.71,2,96.86,73.29,Medium Risk
+SE011,Sai Gaikwad,AI & DS,Second Year (SE),38,33,86.84,93.69,4,52.79,70.79,Medium Risk
+SE012,Kavya Sharma,AI & DS,Second Year (SE),36,30,83.33,76.26,1,53.38,60.64,Low Risk
+SE013,Atharv Jadhav,AI & DS,Second Year (SE),40,16,40.0,44.48,4,90.63,56.12,High Risk
+SE014,Diya Mane,AI & DS,Second Year (SE),44,21,47.73,36.47,1,80.44,59.91,High Risk
+SE015,Kabir Deshmukh,AI & DS,Second Year (SE),44,31,70.45,58.29,1,100.0,90.31,Medium Risk
+SE016,Sara Khan,AI & DS,Second Year (SE),40,34,85.0,82.21,2,80.91,80.11,Low Risk
+SE017,Rudra Gokhale,AI & DS,Second Year (SE),38,28,73.68,66.38,4,65.9,63.63,Medium Risk
+SE018,Avni Joshi,AI & DS,Second Year (SE),44,22,50.0,46.12,6,100.0,59.45,High Risk
+SE019,Ishaan Mehta,AI & DS,Second Year (SE),36,24,66.67,64.36,3,87.02,68.04,Medium Risk
+SE020,Pari Raut,AI & DS,Second Year (SE),40,29,72.5,68.95,0,67.35,56.1,Medium Risk
+SE021,Omkar More,AI & DS,Second Year (SE),44,35,79.55,73.74,4,67.69,60.22,Medium Risk
+SE022,Tanvi Agarwal,AI & DS,Second Year (SE),46,40,86.96,83.18,0,37.19,96.0,Low Risk
+SE023,Dhruv Patil,AI & DS,Second Year (SE),46,26,56.52,57.64,2,75.77,67.28,High Risk
+SE024,Riya Jadhav,AI & DS,Second Year (SE),40,29,72.5,74.27,4,94.51,80.49,Medium Risk
+SE025,Yash Salunkhe,AI & DS,Second Year (SE),36,22,61.11,68.92,5,75.75,63.69,High Risk
+SE026,Pooja Kulkarni,AI & DS,Second Year (SE),40,23,57.5,43.73,3,71.3,66.98,High Risk
+SE027,Atharva Khan,AI & DS,Second Year (SE),38,26,68.42,70.91,0,78.55,96.0,Medium Risk
+SE028,Nisha Nair,AI & DS,Second Year (SE),36,26,72.22,63.33,6,54.44,43.71,Medium Risk
+SE029,Krish Shah,AI & DS,Second Year (SE),42,17,40.48,40.05,0,83.75,52.39,High Risk
+SE030,Mira Mehta,AI & DS,Second Year (SE),46,29,63.04,61.19,6,56.12,63.47,High Risk
+SE031,Ved Sharma,AI & DS,Second Year (SE),42,17,40.48,39.01,1,53.45,83.42,High Risk
+SE032,Neha Pawar,AI & DS,Second Year (SE),44,30,68.18,74.33,2,99.25,79.81,Medium Risk
+SE033,Rohan Agarwal,AI & DS,Second Year (SE),46,32,69.57,64.99,0,26.53,62.23,Medium Risk
+SE034,Sneha Deshmukh,AI & DS,Second Year (SE),46,36,78.26,82.14,5,70.82,60.56,Medium Risk
+SE035,Siddharth Bhosale,AI & DS,Second Year (SE),36,28,77.78,77.63,1,68.36,47.03,Low Risk
+SE036,Aarya Salunkhe,AI & DS,Second Year (SE),42,21,50.0,55.7,2,58.4,69.15,High Risk
+SE037,Manav Joshi,AI & DS,Second Year (SE),42,35,83.33,73.24,1,75.17,96.0,Low Risk
+SE038,Pranali Chavan,AI & DS,Second Year (SE),46,19,41.3,39.34,1,72.21,67.05,High Risk
+SE039,Harsh Nair,AI & DS,Second Year (SE),40,25,62.5,57.07,2,72.67,77.72,Medium Risk
+SE040,Shreya More,AI & DS,Second Year (SE),36,33,91.67,86.45,1,98.93,65.46,Low Risk
+SE041,Akash Gaikwad,AI & DS,Second Year (SE),46,42,91.3,91.98,2,65.15,68.2,Low Risk
+SE042,Mitali Sharma,AI & DS,Second Year (SE),46,29,63.04,65.02,4,62.07,41.6,High Risk
+SE043,Kunal Jadhav,AI & DS,Second Year (SE),36,17,47.22,61.52,1,46.24,71.83,High Risk
+SE044,Pallavi Mane,AI & DS,Second Year (SE),42,31,73.81,80.64,5,80.21,81.73,Medium Risk
+SE045,Nikhil Deshmukh,AI & DS,Second Year (SE),46,39,84.78,93.89,0,100.0,90.51,Low Risk
+SE046,Sakshi Khan,AI & DS,Second Year (SE),44,23,52.27,51.2,5,62.42,48.75,High Risk
+SE047,Soham Gokhale,AI & DS,Second Year (SE),44,26,59.09,61.9,4,74.48,48.73,High Risk
+SE048,Anushka Joshi,AI & DS,Second Year (SE),46,22,47.83,40.91,3,85.2,82.58,High Risk
+SE049,Tejas Mehta,AI & DS,Second Year (SE),40,20,50.0,49.25,1,55.55,43.71,High Risk
+SE050,Janvi Raut,AI & DS,Second Year (SE),44,27,61.36,59.94,2,70.47,64.29,Medium Risk
+SE051,Rahul More,AI & DS,Second Year (SE),44,39,88.64,70.98,0,77.45,63.98,Low Risk
+SE052,Vaishnavi Agarwal,AI & DS,Second Year (SE),40,26,65.0,57.89,3,68.27,75.67,Medium Risk
+SE053,Prathamesh Patil,AI & DS,Second Year (SE),46,35,76.09,73.34,6,26.08,77.15,Medium Risk
+SE054,Komal Jadhav,AI & DS,Second Year (SE),40,34,85.0,78.82,4,80.48,92.27,Medium Risk
+SE055,Abhishek Salunkhe,AI & DS,Second Year (SE),46,38,82.61,72.63,5,100.0,63.08,Medium Risk
+SE056,Mrunal Kulkarni,AI & DS,Second Year (SE),40,27,67.5,62.05,2,64.46,74.52,Medium Risk
+SE057,Om Khan,AI & DS,Second Year (SE),46,26,56.52,56.4,6,67.58,70.15,High Risk
+SE058,Shivani Nair,AI & DS,Second Year (SE),44,34,77.27,82.59,5,62.65,68.02,Medium Risk
+SE059,Tanish Shah,AI & DS,Second Year (SE),44,30,68.18,65.35,2,81.95,35.24,Medium Risk
+SE060,Gauri Mehta,AI & DS,Second Year (SE),38,30,78.95,60.8,6,86.06,60.28,Medium Risk
+TE001,Diya Shah,AI & DS,Third Year (TE),46,34,73.91,90.87,1,64.41,70.02,Medium Risk
+TE002,Kabir Mehta,AI & DS,Third Year (TE),36,15,41.67,53.67,2,28.92,64.29,High Risk
+TE003,Sara Raut,AI & DS,Third Year (TE),46,42,91.3,88.82,1,58.96,89.75,Low Risk
+TE004,Rudra Pawar,AI & DS,Third Year (TE),40,28,70.0,73.83,4,83.62,59.55,Medium Risk
+TE005,Avni Agarwal,AI & DS,Third Year (TE),36,19,52.78,43.5,6,92.23,50.15,High Risk
+TE006,Ishaan Patil,AI & DS,Third Year (TE),36,20,55.56,41.25,1,94.31,76.05,High Risk
+TE007,Pari Bhosale,AI & DS,Third Year (TE),38,27,71.05,72.43,3,100.0,75.5,Medium Risk
+TE008,Omkar Salunkhe,AI & DS,Third Year (TE),40,34,85.0,87.38,2,59.46,63.67,Low Risk
+TE009,Tanvi Kulkarni,AI & DS,Third Year (TE),40,29,72.5,66.45,2,69.02,91.21,Medium Risk
+TE010,Dhruv Chavan,AI & DS,Third Year (TE),38,23,60.53,69.33,5,89.32,96.0,High Risk
+TE011,Riya Nair,AI & DS,Third Year (TE),42,23,54.76,69.45,1,64.52,79.32,High Risk
+TE012,Yash Shah,AI & DS,Third Year (TE),38,27,71.05,57.41,3,79.15,73.76,Medium Risk
+TE013,Pooja Gaikwad,AI & DS,Third Year (TE),40,31,77.5,85.75,1,59.11,73.86,Low Risk
+TE014,Atharva Sharma,AI & DS,Third Year (TE),38,23,60.53,39.57,4,63.42,78.79,High Risk
+TE015,Nisha Pawar,AI & DS,Third Year (TE),36,29,80.56,77.15,0,96.49,82.8,Low Risk
+TE016,Krish Mane,AI & DS,Third Year (TE),44,40,90.91,98.0,1,68.43,61.68,Low Risk
+TE017,Mira Deshmukh,AI & DS,Third Year (TE),42,36,85.71,98.0,1,82.07,50.3,Low Risk
+TE018,Ved Bhosale,AI & DS,Third Year (TE),36,29,80.56,84.66,0,59.48,96.0,Low Risk
+TE019,Neha Gokhale,AI & DS,Third Year (TE),42,25,59.52,62.08,4,55.79,75.86,High Risk
+TE020,Rohan Joshi,AI & DS,Third Year (TE),42,31,73.81,81.32,0,50.96,96.0,Medium Risk
+TE021,Sneha Chavan,AI & DS,Third Year (TE),44,28,63.64,54.54,0,84.72,41.59,Medium Risk
+TE022,Siddharth Raut,AI & DS,Third Year (TE),36,32,88.89,94.19,1,85.15,96.0,Low Risk
+TE023,Aarya More,AI & DS,Third Year (TE),40,28,70.0,72.81,1,82.49,49.79,Medium Risk
+TE024,Manav Gaikwad,AI & DS,Third Year (TE),38,23,60.53,59.68,2,59.19,67.84,Medium Risk
+TE025,Pranali Patil,AI & DS,Third Year (TE),46,26,56.52,43.9,2,57.38,72.85,High Risk
+TE026,Harsh Jadhav,AI & DS,Third Year (TE),46,34,73.91,67.42,4,65.61,50.09,Medium Risk
+TE027,Shreya Mane,AI & DS,Third Year (TE),46,42,91.3,89.12,0,55.1,89.51,Low Risk
+TE028,Akash Kulkarni,AI & DS,Third Year (TE),36,32,88.89,83.84,3,99.06,44.09,Low Risk
+TE029,Mitali Khan,AI & DS,Third Year (TE),36,16,44.44,55.92,1,100.0,52.27,High Risk
+TE030,Kunal Gokhale,AI & DS,Third Year (TE),44,26,59.09,57.56,4,74.39,49.48,High Risk
+TE031,Pallavi Shah,AI & DS,Third Year (TE),40,27,67.5,78.88,1,84.08,96.0,Medium Risk
+TE032,Nikhil Mehta,AI & DS,Third Year (TE),38,15,39.47,54.8,2,75.37,67.56,High Risk
+TE033,Sakshi Raut,AI & DS,Third Year (TE),46,32,69.57,66.14,0,58.32,66.03,Medium Risk
+TE034,Soham Pawar,AI & DS,Third Year (TE),38,36,94.74,87.28,1,68.49,73.87,Low Risk
+TE035,Anushka Agarwal,AI & DS,Third Year (TE),44,34,77.27,84.01,2,91.48,45.62,Low Risk
+TE036,Tejas Patil,AI & DS,Third Year (TE),36,16,44.44,53.21,5,100.0,78.31,High Risk
+TE037,Janvi Bhosale,AI & DS,Third Year (TE),42,17,40.48,42.03,5,75.68,76.5,High Risk
+TE038,Rahul Salunkhe,AI & DS,Third Year (TE),44,31,70.45,55.59,5,65.46,69.83,Medium Risk
+TE039,Vaishnavi Kulkarni,AI & DS,Third Year (TE),38,27,71.05,68.96,2,76.96,72.2,Medium Risk
+TE040,Prathamesh Chavan,AI & DS,Third Year (TE),38,24,63.16,53.87,2,82.95,49.37,Medium Risk
+TE041,Komal Nair,AI & DS,Third Year (TE),40,31,77.5,69.89,2,85.22,68.51,Low Risk
+TE042,Abhishek Shah,AI & DS,Third Year (TE),40,22,55.0,65.68,3,61.99,79.07,High Risk
+TE043,Mrunal Gaikwad,AI & DS,Third Year (TE),36,28,77.78,60.43,6,56.58,69.46,Medium Risk
+TE044,Om Sharma,AI & DS,Third Year (TE),40,37,92.5,98.0,6,66.34,73.81,Medium Risk
+TE045,Shivani Pawar,AI & DS,Third Year (TE),40,34,85.0,95.31,2,84.83,90.71,Low Risk
+TE046,Tanish Mane,AI & DS,Third Year (TE),44,18,40.91,35.0,5,85.98,69.2,High Risk
+TE047,Gauri Deshmukh,AI & DS,Third Year (TE),44,38,86.36,72.7,2,87.82,45.79,Low Risk
+TE048,Aarav Bhosale,AI & DS,Third Year (TE),36,29,80.56,66.51,5,100.0,86.4,Medium Risk
+TE049,Ananya Gokhale,AI & DS,Third Year (TE),40,31,77.5,76.3,2,63.54,59.27,Low Risk
+TE050,Vihaan Joshi,AI & DS,Third Year (TE),40,16,40.0,35.0,3,60.37,96.0,High Risk
+TE051,Isha Chavan,AI & DS,Third Year (TE),36,20,55.56,44.73,2,40.09,89.95,High Risk
+TE052,Aditya Raut,AI & DS,Third Year (TE),46,39,84.78,93.33,0,85.97,73.7,Low Risk
+TE053,Saanvi More,AI & DS,Third Year (TE),44,29,65.91,79.5,2,84.87,57.62,Medium Risk
+TE054,Arjun Gaikwad,AI & DS,Third Year (TE),46,37,80.43,64.27,4,47.78,76.07,Medium Risk
+TE055,Aditi Patil,AI & DS,Third Year (TE),36,26,72.22,61.62,2,100.0,66.57,Medium Risk
+TE056,Reyansh Jadhav,AI & DS,Third Year (TE),36,15,41.67,42.29,2,68.69,65.83,High Risk
+TE057,Myra Mane,AI & DS,Third Year (TE),38,30,78.95,88.37,1,78.42,64.27,Low Risk
+TE058,Sai Kulkarni,AI & DS,Third Year (TE),46,19,41.3,35.0,1,100.0,19.4,High Risk
+TE059,Kavya Khan,AI & DS,Third Year (TE),46,28,60.87,54.33,4,72.7,35.39,High Risk
+TE060,Atharv Gokhale,AI & DS,Third Year (TE),44,26,59.09,48.99,2,61.73,66.56,High Risk
+BE001,Nisha Chavan,AI & DS,Fourth Year (BE),36,24,66.67,65.96,5,82.44,47.41,High Risk
+BE002,Krish Nair,AI & DS,Fourth Year (BE),46,32,69.57,81.3,1,67.13,67.15,Medium Risk
+BE003,Mira Shah,AI & DS,Fourth Year (BE),44,36,81.82,78.67,3,89.34,74.84,Low Risk
+BE004,Ved Gaikwad,AI & DS,Fourth Year (BE),44,28,63.64,49.77,6,100.0,87.29,High Risk
+BE005,Neha Sharma,AI & DS,Fourth Year (BE),44,26,59.09,56.34,6,82.03,34.7,High Risk
+BE006,Rohan Pawar,AI & DS,Fourth Year (BE),40,23,57.5,47.49,3,91.19,67.26,High Risk
+BE007,Sneha Mane,AI & DS,Fourth Year (BE),46,34,73.91,68.85,2,94.63,75.75,Medium Risk
+BE008,Siddharth Deshmukh,AI & DS,Fourth Year (BE),40,38,95.0,95.59,3,76.67,50.67,Low Risk
+BE009,Aarya Bhosale,AI & DS,Fourth Year (BE),40,35,87.5,88.57,3,60.56,81.11,Low Risk
+BE010,Manav Gokhale,AI & DS,Fourth Year (BE),36,14,38.89,60.11,2,76.67,65.22,High Risk
+BE011,Pranali Joshi,AI & DS,Fourth Year (BE),36,26,72.22,77.5,1,76.4,73.04,Medium Risk
+BE012,Harsh Chavan,AI & DS,Fourth Year (BE),44,32,72.73,67.17,1,78.36,45.78,Medium Risk
+BE013,Shreya Raut,AI & DS,Fourth Year (BE),46,43,93.48,91.14,0,85.51,69.22,Low Risk
+BE014,Akash More,AI & DS,Fourth Year (BE),38,33,86.84,98.0,2,82.71,43.1,Low Risk
+BE015,Mitali Gaikwad,AI & DS,Fourth Year (BE),44,33,75.0,68.47,0,90.16,96.0,Low Risk
+BE016,Kunal Patil,AI & DS,Fourth Year (BE),36,30,83.33,89.93,4,64.62,56.68,Medium Risk
+BE017,Pallavi Jadhav,AI & DS,Fourth Year (BE),42,23,54.76,48.08,2,57.23,71.9,High Risk
+BE018,Nikhil Mane,AI & DS,Fourth Year (BE),36,21,58.33,58.5,2,100.0,41.24,High Risk
+BE019,Sakshi Kulkarni,AI & DS,Fourth Year (BE),46,41,89.13,89.46,1,87.5,58.57,Low Risk
+BE020,Soham Khan,AI & DS,Fourth Year (BE),44,24,54.55,55.41,5,90.78,57.44,High Risk
+BE021,Anushka Gokhale,AI & DS,Fourth Year (BE),36,33,91.67,83.55,1,86.82,69.48,Low Risk
+BE022,Tejas Shah,AI & DS,Fourth Year (BE),42,32,76.19,76.34,2,78.71,85.69,Low Risk
+BE023,Janvi Mehta,AI & DS,Fourth Year (BE),44,37,84.09,98.0,4,56.01,69.87,Medium Risk
+BE024,Rahul Raut,AI & DS,Fourth Year (BE),44,39,88.64,95.73,5,66.68,67.26,Medium Risk
+BE025,Vaishnavi Pawar,AI & DS,Fourth Year (BE),44,29,65.91,65.16,4,55.48,51.13,High Risk
+BE026,Prathamesh Agarwal,AI & DS,Fourth Year (BE),46,26,56.52,55.89,4,95.54,35.91,High Risk
+BE027,Komal Patil,AI & DS,Fourth Year (BE),44,28,63.64,61.04,0,78.4,67.95,Medium Risk
+BE028,Abhishek Bhosale,AI & DS,Fourth Year (BE),46,44,95.65,89.08,2,97.74,60.83,Low Risk
+BE029,Mrunal Salunkhe,AI & DS,Fourth Year (BE),46,21,45.65,56.32,2,42.06,53.06,High Risk
+BE030,Om Kulkarni,AI & DS,Fourth Year (BE),38,28,73.68,79.54,3,61.21,81.19,Medium Risk
+BE031,Shivani Chavan,AI & DS,Fourth Year (BE),46,38,82.61,73.58,3,92.47,96.0,Low Risk
+BE032,Tanish Nair,AI & DS,Fourth Year (BE),36,16,44.44,57.06,2,90.8,77.5,High Risk
+BE033,Gauri Shah,AI & DS,Fourth Year (BE),38,32,84.21,80.73,4,100.0,55.32,Medium Risk
+BE034,Aarav Gaikwad,AI & DS,Fourth Year (BE),40,35,87.5,76.0,3,83.12,59.02,Low Risk
+BE035,Ananya Sharma,AI & DS,Fourth Year (BE),36,18,50.0,53.58,4,75.67,82.84,High Risk
+BE036,Vihaan Pawar,AI & DS,Fourth Year (BE),44,23,52.27,45.08,6,73.98,76.08,High Risk
+BE037,Isha Mane,AI & DS,Fourth Year (BE),36,19,52.78,52.33,1,66.36,60.04,High Risk
+BE038,Aditya Deshmukh,AI & DS,Fourth Year (BE),40,30,75.0,76.76,5,100.0,63.9,Medium Risk
+BE039,Saanvi Bhosale,AI & DS,Fourth Year (BE),46,39,84.78,76.9,3,61.9,62.65,Low Risk
+BE040,Arjun Gokhale,AI & DS,Fourth Year (BE),38,20,52.63,55.33,2,73.84,56.97,High Risk
+BE041,Aditi Joshi,AI & DS,Fourth Year (BE),38,27,71.05,50.27,4,66.37,71.41,Medium Risk
+BE042,Reyansh Chavan,AI & DS,Fourth Year (BE),38,15,39.47,35.0,4,64.63,77.99,High Risk
+BE043,Myra Raut,AI & DS,Fourth Year (BE),44,41,93.18,97.61,4,76.77,73.21,Medium Risk
+BE044,Sai More,AI & DS,Fourth Year (BE),44,25,56.82,59.17,6,73.95,75.98,High Risk
+BE045,Kavya Gaikwad,AI & DS,Fourth Year (BE),40,38,95.0,97.09,2,90.47,84.74,Low Risk
+BE046,Atharv Patil,AI & DS,Fourth Year (BE),42,23,54.76,55.3,2,100.0,61.61,High Risk
+BE047,Diya Jadhav,AI & DS,Fourth Year (BE),42,31,73.81,83.0,1,71.04,56.3,Medium Risk
+BE048,Kabir Mane,AI & DS,Fourth Year (BE),46,26,56.52,57.16,0,64.23,64.58,High Risk
+BE049,Sara Kulkarni,AI & DS,Fourth Year (BE),36,28,77.78,72.87,1,89.84,50.57,Low Risk
+BE050,Rudra Khan,AI & DS,Fourth Year (BE),36,29,80.56,96.1,4,55.05,73.33,Medium Risk
+BE051,Avni Gokhale,AI & DS,Fourth Year (BE),44,31,70.45,69.13,3,100.0,75.58,Medium Risk
+BE052,Ishaan Shah,AI & DS,Fourth Year (BE),42,33,78.57,82.55,0,65.75,78.98,Low Risk
+BE053,Pari Mehta,AI & DS,Fourth Year (BE),40,30,75.0,77.29,2,40.63,60.94,Low Risk
+BE054,Omkar Raut,AI & DS,Fourth Year (BE),46,18,39.13,42.22,5,77.95,41.11,High Risk
+BE055,Tanvi Pawar,AI & DS,Fourth Year (BE),42,38,90.48,92.03,2,78.32,61.61,Low Risk
+BE056,Dhruv Agarwal,AI & DS,Fourth Year (BE),42,30,71.43,74.44,6,89.8,55.9,Medium Risk
+BE057,Riya Patil,AI & DS,Fourth Year (BE),46,40,86.96,83.42,2,100.0,70.61,Low Risk
+BE058,Yash Bhosale,AI & DS,Fourth Year (BE),42,24,57.14,44.7,4,54.62,51.62,High Risk
+BE059,Pooja Salunkhe,AI & DS,Fourth Year (BE),36,29,80.56,95.19,4,88.92,79.26,Medium Risk
+BE060,Atharva Kulkarni,AI & DS,Fourth Year (BE),38,30,78.95,78.93,0,61.01,90.53,Low Risk`;
+
+let YR="",YM={},S=[],RFm,DTm,EV,IMP,MM=0,RC=new Map();
+const V=()=>YR?S.filter(s=>yc(s)===YR):S,yc=s=>(s.year.match(/\((\w+)\)/)||[0,s.year])[1],X5=s=>[att(s),s.abs,s.asg,s.prev,s.marks];
+function gen(){S=CSV.trim().split("\n").filter(l=>l.trim()).slice(1).map(l=>{const c=l.split(",");return{id:c[0],name:c[1],dept:c[2],year:c[3],total:+c[4],present:+c[5],prev:+c[7],abs:+c[8],asg:+c[9],marks:+c[10],ref:c[11]}});
+ const X=S.map(s=>[Math.round(s.present/s.total*1e4)/100,s.abs,s.asg,s.prev,s.marks]),y=S.map(s=>CLS.indexOf(s.ref.replace(" Risk","")));
+ EV=evalSplit(X,y);DTm=trainDT(X,y);RFm=trainRF(X,y);IMP=forestImp(RFm);RC=new Map();S.forEach((s,i)=>s.x0=X[i]);YM={};MM=S.filter(s=>risk(s)+" Risk"!==s.ref).length}
+const att=s=>Math.round(s.present/s.total*1e4)/100,risk=s=>{const k=s.id+"|"+s.present+"|"+s.total+"|"+s.abs;if(!RC.has(k))RC.set(k,CLS[best(predRF(models(yc(s)).rf,X5(s)).p)]);return RC.get(k)};
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+
+let ch1,ch2;
+
+
+
+/* ---------- machine learning: Decision Tree + Random Forest (CART, Gini) ---------- */
+const FEAT=["Attendance %","Consecutive absences","Assignment completion %","Previous term attendance %","Internal marks %"],CLS=["High","Medium","Low"];
+const rngS=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const gini=(c,n)=>1-c.reduce((g,v)=>g+(v/n)**2,0);
+function grow(X,y,idx,d,o,r){
+  const c=[0,0,0];idx.forEach(i=>c[y[i]]++);const n=idx.length;
+  if(d>=o.maxD||n<o.minS||c.filter(v=>v).length<2)return{c};
+  let fs=X[0].map((_,i)=>i);
+  if(o.mf){for(let i=fs.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[fs[i],fs[j]]=[fs[j],fs[i]]}fs=fs.slice(0,o.mf)}
+  let bg=gini(c,n)-1e-9,bf=-1,bt=0;
+  for(const f of fs){const s=[...idx].sort((a,b)=>X[a][f]-X[b][f]),L=[0,0,0],R=[...c];
+    for(let k=0;k<n-1;k++){const i=s[k];L[y[i]]++;R[y[i]]--;const a=X[i][f],b=X[s[k+1]][f];if(a===b)continue;
+      const g=((k+1)*gini(L,k+1)+(n-k-1)*gini(R,n-k-1))/n;if(g<bg){bg=g;bf=f;bt=(a+b)/2}}}
+  if(bf<0)return{c};
+  return{f:bf,t:bt,c,l:grow(X,y,idx.filter(i=>X[i][bf]<=bt),d+1,o,r),r:grow(X,y,idx.filter(i=>X[i][bf]>bt),d+1,o,r)}}
+function walk(t,x,path){while(t.l){const go=x[t.f]<=t.t;if(path)path.push(`${FEAT[t.f]} ${go?"≤":">"} ${t.t.toFixed(1)}`);t=go?t.l:t.r}const n=t.c.reduce((a,b)=>a+b,0);return t.c.map(v=>v/n)}
+function importance(t,imp,N){if(!t.l)return;const n=t.c.reduce((a,b)=>a+b,0),cl=t.l.c.reduce((a,b)=>a+b,0),cr=t.r.c.reduce((a,b)=>a+b,0);
+  imp[t.f]+=(n*gini(t.c,n)-cl*gini(t.l.c,cl)-cr*gini(t.r.c,cr))/N;importance(t.l,imp,N);importance(t.r,imp,N)}
+function trainDT(X,y,o={maxD:4,minS:4}){return grow(X,y,X.map((_,i)=>i),0,o,Math.random)}
+function trainRF(X,y,nt=100,seed=7){const r=rngS(seed),o={maxD:8,minS:2,mf:Math.round(Math.sqrt(X[0].length))};
+  return Array.from({length:nt},()=>grow(X,y,X.map(()=>Math.floor(r()*X.length)),0,o,r))}
+const predRF=(F,x)=>{const p=[0,0,0],v=[0,0,0];F.forEach(t=>{const q=walk(t,x);q.forEach((a,i)=>p[i]+=a/F.length);v[q.indexOf(Math.max(...q))]++});return{p,v}};
+const best=p=>p.indexOf(Math.max(...p));
+function forestImp(F){const imp=FEAT.map(()=>0);F.forEach(t=>{const n=t.c.reduce((a,b)=>a+b,0);importance(t,imp,n)});const s=imp.reduce((a,b)=>a+b,0)||1;return imp.map(v=>v/s)}
+function evalSplit(X,y,seed=11){ // stratified 80/20 hold-out
+  const r=rngS(seed),te=new Set();[0,1,2].forEach(k=>{const ids=y.map((v,i)=>v===k?i:-1).filter(i=>i>=0);ids.sort(()=>r()-.5);ids.slice(0,Math.round(ids.length*.2)).forEach(i=>te.add(i))});
+  const tr=X.map((_,i)=>i).filter(i=>!te.has(i)),ts=[...te],sub=a=>[a.map(i=>X[i]),a.map(i=>y[i])];
+  const [Xt,yt]=sub(tr),[Xs,ys]=sub(ts),dt=trainDT(Xt,yt),rf=trainRF(Xt,yt);
+  const acc=f=>Xs.filter((x,i)=>f(x)===ys[i]).length/Xs.length;
+  return{n:ts.length,dt:acc(x=>best(walk(dt,x))),rf:acc(x=>best(predRF(rf,x).p))}}
+
+
+/* ---------- toast / nav ---------- */
+
+function toast(m){const t=$("#ts");t.textContent=m;t.classList.add("show");clearTimeout(t.h);t.h=setTimeout(()=>t.classList.remove("show"),2200)}
+
+function go(v){$$(".view").forEach(e=>e.classList.toggle("on",e.id===v));$$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));$("#side").classList.remove("open");scrollTo(0,0)}
+
+$$(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
+
+$("#burger").onclick=()=>$("#side").classList.toggle("open");$("#ov").onclick=()=>$("#side").classList.remove("open");
+
+$$("[data-go]").forEach(b=>b.onclick=()=>{go(b.dataset.go);if(b.dataset.risk){$("#fr").value=b.dataset.risk;renderTable()}});
+
+$("#bell").onclick=e=>{e.stopPropagation();$("#dd").classList.toggle("show")};
+
+document.addEventListener("click",e=>{if(!e.target.closest("#dd"))$("#dd").classList.remove("show")});
+
+$("#gs").oninput=e=>{$("#q").value=e.target.value;go("stu");renderTable()};
+
+
+
+/* ---------- dashboard ---------- */
+
+function count(el,to,dec=0,suf=""){const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/600);el.textContent=(to*p).toFixed(dec)+suf;if(p<1)requestAnimationFrame(f)})(t0)}
+
+function renderCards(){
+
+ const A=V(),hi=A.filter(s=>risk(s)=="High").length,lo=A.filter(s=>risk(s)=="Low").length,a=avg(A.map(att));
+
+ const D=[["Total students",A.length,0,"","users","#e3f2ef","#0f766e"],["Average attendance",a,2,"%","trend","#e0f2fe","#0369a1"],["High-risk students",hi,0,"","warn","#ffedd5","#c2410c"],["Low-risk students",lo,0,"","ok","#dcfce7","#15803d"]];
+
+ $("#cards").innerHTML=D.map(d=>`<div class="card stat"><div><small>${d[0]}</small><h2 data-n="${d[1]}" data-d="${d[2]}" data-s="${d[3]}">0</h2></div><div class="ico" style="background:${d[5]};color:${d[6]}"><i data-i="${d[4]}"></i></div></div>`).join("");
+
+ icons($("#cards"));$$("#cards h2").forEach(h=>count(h,+h.dataset.n,+h.dataset.d,h.dataset.s));
+
+ $("#dsub").textContent=`${YR?$("#dy").selectedOptions[0].text:"All years"} · AI & DS · ${A.length} fictional students · each year's students are classified by a Random Forest trained on that year's 60 records (demonstration data)`;
+
+ const n=A.filter(s=>risk(s)=="High");$("#bc").textContent=n.length;
+
+ $("#dd").innerHTML="<b style='padding:8px;display:block'>High-risk alerts (demo)</b>"+n.slice(0,6).map(s=>`<div>${s.name} · ${att(s).toFixed(2)}%</div>`).join("")+(n.length>6?`<div>+${n.length-6} more</div>`:"")||"<div>No alerts</div>";
+
+}
+
+function renderCharts(){
+
+ const A=V(),L=A.map(s=>s.id),P=A.map(att),C=A.map(s=>({High:"#c2410c",Medium:"#d9a406",Low:"#22a455"})[risk(s)]),cnt=["High","Medium","Low"].map(k=>A.filter(s=>risk(s)==k).length);
+
+ if(typeof Chart==="undefined"){$$(".cv").forEach(c=>c.innerHTML="<p class='sub'>Chart.js could not load. Connect to the internet to see charts.</p>");return}
+
+ const ln=(l,v,c)=>({type:"line",label:l,data:L.map(()=>v),borderColor:c,borderDash:[6,4],pointRadius:0,borderWidth:1.5,order:1});
+
+ if(!ch1){
+
+  ch1=new Chart($("#c1"),{data:{labels:L,datasets:[{type:"bar",label:"Attendance %",data:P,backgroundColor:C,borderRadius:3,order:2},ln("75% · Low risk from here",75,"#15803d"),ln("65% · High risk below",65,"#c2410c")]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{callback:v=>v+"%"}},x:{ticks:{maxRotation:90,font:{size:9}}}},plugins:{legend:{position:"bottom",labels:{filter:i=>i.datasetIndex>0}},tooltip:{callbacks:{title:i=>V()[i[0].dataIndex].name+" ("+V()[i[0].dataIndex].id+")"}}}}});
+
+  ch2=new Chart($("#c2"),{type:"doughnut",data:{labels:["High Risk","Medium Risk","Low Risk"],datasets:[{data:cnt,backgroundColor:["#c2410c","#d9a406","#22a455"],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"bottom"}},onClick:(e,el)=>{if(el.length){go("stu");$("#fr").value=["High","Medium","Low"][el[0].index];renderTable()}}}});
+
+ }else{ch1.data.datasets[0].data=P;ch1.data.datasets[0].backgroundColor=C;ch1.update();ch2.data.datasets[0].data=cnt;ch2.update()}
+
+}
+
+function renderTop(){
+
+ $("#top").innerHTML=[...V()].sort((a,b)=>att(a)-att(b)).slice(0,5).map(s=>`<div class="ar"><span class="nm" onclick="openM('${s.id}')"><i>${ini(s)}</i>${s.name}<small style="color:var(--mute);font-weight:400">${s.id}</small></span><span><b>${att(s).toFixed(2)}%</b> <span class="bd ${risk(s)}">${risk(s)} Risk</span></span></div>`).join("")}
+
+const ini=s=>s.name.split(" ").map(x=>x[0]).join("");
+
+$("#sim").onclick=()=>{S.forEach(s=>{s.total++;if(Math.random()<Math.min(.97,att(s)/100+.03))s.abs=0,s.present++;else s.abs++});refresh();toast("Simulated one class day (demo)")};
+
+
+
+/* ---------- table ---------- */
+
+function filtered(){const q=$("#q").value.toLowerCase(),r=$("#fr").value,o=$("#so").value;
+
+ let a=S.filter(s=>(!q||s.name.toLowerCase().includes(q)||s.id.toLowerCase().includes(q))&&(!r||risk(s)==r)&&(!$("#fy").value||yc(s)==$("#fy").value));
+
+ return a.sort((x,y)=>o=="asc"?att(x)-att(y):o=="desc"?att(y)-att(x):x.name.localeCompare(y.name))}
+
+function renderTable(){const a=filtered();
+
+ $("#tb").innerHTML=a.map(s=>{const p=att(s),k=risk(s);return`<tr><td><span class="nm" onclick="openM('${s.id}')"><i>${ini(s)}</i><span>${s.name}<br><small style="color:var(--mute);font-weight:400">${s.id}</small></span></span></td><td>${s.dept} · ${yc(s)}</td><td><div class="pbar"><u><s class="f-${k}" style="width:${p}%"></s></u><b>${p.toFixed(2)}%</b></div></td><td>${s.present}/${s.total}</td><td><span class="bd ${k}">${k} Risk</span></td><td><div class="acts"><button class="btn sm" onclick="mark('${s.id}',1)" title="Mark present"><i data-i="plus"></i>Present</button><button class="btn sm sec" onclick="mark('${s.id}',0)" title="Mark absent"><i data-i="minus"></i>Absent</button></div></td></tr>`}).join("");
+
+ $("#empty").style.display=a.length?"none":"block";icons($("#tb"))}
+
+["q","fr","fy","so"].forEach(i=>$("#"+i).oninput=renderTable);
+
+
+
+$("#clr").onclick=()=>{$("#q").value=$("#gs").value="";$("#fr").value="";$("#fy").value="";$("#so").value="name";setYear("")};
+
+$("#exp").onclick=()=>{const rows=[["ID","Name","Department","Year","Classes conducted","Classes attended","Attendance %","Risk"],...filtered().map(s=>[s.id,s.name,s.dept,s.year,s.total,s.present,att(s).toFixed(2),risk(s)+" Risk"])];
+
+ const u=URL.createObjectURL(new Blob([rows.map(r=>r.join(",")).join("\n")],{type:"text/csv"}));const a=document.createElement("a");a.href=u;a.download="attendiq-demo-data.csv";a.click();toast("Exported "+(rows.length-1)+" demo records")};
+
+function mark(id,p){const s=S.find(x=>x.id==id);s.total++;if(p){s.present++;s.abs=0}else s.abs++;refresh();toast(`${s.name} marked ${p?"present":"absent"} · now ${att(s).toFixed(2)}%`);if($("#md").classList.contains("show"))openM(id)}
+
+function refresh(){renderCards();renderCharts();renderTop();renderTable()}
+
+
+
+/* ---------- modal ---------- */
+
+function openM(id){const s=S.find(x=>x.id==id),k=risk(s);
+
+ $("#mb").innerHTML=`<h3 style="display:flex;justify-content:space-between;font-size:18px">${s.name}<button class="ib" onclick="closeM()" aria-label="Close"><i data-i="x"></i></button></h3><small style="color:var(--mute)">${s.id} · ${s.dept} · ${s.year} · demo record</small>
+
+ <div class="k"><div><small>Attendance</small><b style="font-size:20px">${att(s).toFixed(2)}%</b></div><div><small>Risk level</small><span class="bd ${k}">${k} Risk</span></div><div><small>Classes attended</small><b>${s.present} of ${s.total}</b></div><div><small>Classes missed</small><b>${s.total-s.present}</b></div></div>
+
+ <div class="acts" style="flex-wrap:wrap"><button class="btn" onclick="mark('${id}',1)"><i data-i="plus"></i>Mark present</button><button class="btn sec" onclick="mark('${id}',0)"><i data-i="minus"></i>Mark absent</button><button class="btn sec" onclick="toast('Reminder sent to guardian (demo, nothing was sent)')"><i data-i="bell"></i>Send reminder</button></div>`;
+
+ icons($("#mb"));$("#md").classList.add("show")}
+
+function closeM(){$("#md").classList.remove("show")}
+
+$("#md").onclick=e=>{if(e.target.id=="md")closeM()};document.onkeydown=e=>{if(e.key=="Escape")closeM()};
+
+
+
+/* ---------- predictor ---------- */
+
+const F=[["att","Current attendance (%)",40,100,88],["abs","Consecutive absences",0,10,2],["asg","Assignment completion (%)",20,100,85],["prev","Previous term attendance (%)",40,100,90],["marks","Internal marks (%)",20,100,70]];
+
+$("#fl").innerHTML=F.map(f=>`<div class="fld"><label>${f[1]}<span id="o_${f[0]}">${f[4]}</span></label><input type="range" id="p_${f[0]}" min="${f[2]}" max="${f[3]}" value="${f[4]}"></div>`).join("");
+
+F.forEach(f=>$("#p_"+f[0]).oninput=e=>$("#o_"+f[0]).textContent=e.target.value);
+
+function models(yr){if(!yr)return{rf:RFm,dt:DTm,ev:EV,imp:IMP,n:S.length};if(!YM[yr]){const a=S.filter(s=>yc(s)===yr),X=a.map(s=>s.x0),y=a.map(s=>CLS.indexOf(s.ref.replace(" Risk",""))),rf=trainRF(X,y);YM[yr]={rf,dt:trainDT(X,y),ev:evalSplit(X,y),imp:forestImp(rf),n:a.length}}return YM[yr]}
+$("#fl").insertAdjacentHTML("beforeend",`<div class="fld"><label>Student year (training cohort)</label><select id="p_yr" style="width:100%">${$("#fy").innerHTML}</select></div>`);
+const riskScore={High:85,Medium:50,Low:15},pc=v=>(v*100).toFixed(0)+"%";
+$("#go").onclick=()=>{const v=k=>+$("#p_"+k).value,x=[v("att"),v("abs"),v("asg"),v("prev"),v("marks")];
+  const M=models($("#p_yr").value),rf=predRF(M.rf,x),k=CLS[best(rf.p)],path=[],dp=walk(M.dt,x,path),dk=CLS[best(dp)],sc=Math.round(rf.p.reduce((a,p,i)=>a+p*riskScore[CLS[i]],0));
+  $("#rl").className="bd "+k;$("#rl").textContent=k+" risk";count($("#rp"),sc);$("#gi").style.left=`calc(${sc}% - 3px)`;
+  const top=M.imp.map((w,i)=>[FEAT[i],w]).sort((a,b)=>b[1]-a[1]).slice(0,3).map(a=>`${a[0]} ${pc(a[1])}`).join(" · ");
+  $("#fx").innerHTML="<b>Model explanation</b>"+
+    `<div><span>Training cohort</span><b>${$("#p_yr").value?$("#p_yr").selectedOptions[0].text:"All years"} · ${M.n} students</b></div>`+
+    `<div><span>Random Forest prediction (100 trees)</span><b>${k} risk</b></div>`+
+    `<div><span>Tree votes: High · Medium · Low</span><b>${rf.v.join(" · ")}</b></div>`+
+    `<div><span>Forest class probabilities</span><b>${rf.p.map((p,i)=>CLS[i][0]+" "+pc(p)).join(" · ")}</b></div>`+
+    `<div><span>Decision Tree prediction (depth 4)</span><b>${dk} risk${dk===k?" · agrees":" · differs"}</b></div>`+
+    `<div style="display:block"><b>Decision Tree path</b><p class='sub' style='margin:6px 0 0;font-size:12px'>${path.length?path.join(" → "):"Single leaf"} → ${dk} risk</p></div>`+
+    `<div><span>Most influential indicators</span><b>${top}</b></div>`+
+    `<div><span>Hold-out accuracy (${M.ev.n} unseen students)</span><b>RF ${pc(M.ev.rf)} · DT ${pc(M.ev.dt)}</b></div>`+
+    "<p class='sub' style='margin:10px 0 0;font-size:12px'>The risk score (0–100) is the forest's probability-weighted score (High 85, Medium 50, Low 15), not a calibrated probability. Models are trained in the browser on fictional data with an 80/20 hold-out check; this is a demonstration, not a validated tool for real student decisions.</p>";
+  toast("Random Forest: "+k+" risk (score "+sc+") · Decision Tree: "+dk)};
+
+function setYear(y){YR=y;["#dy","#fy","#p_yr"].forEach(i=>$(i).value=y);if(ch1){ch1.destroy();ch2.destroy();ch1=ch2=null}refresh();$("#go").click()}
+$("#dy").onchange=$("#fy").oninput=$("#p_yr").onchange=e=>setYear(e.target.value);
+
+$("#reset").onclick=()=>{gen();$("#clr").click();refresh();toast("Demo data reset")};
+
+
+
+gen();icons();refresh();$("#go").click();
+
+</script>
+
+</body>
+
+</html>
